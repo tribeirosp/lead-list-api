@@ -1,4 +1,4 @@
-Lead List API Plugin
+Lead List API Plugin - "Versão Beta"
 
 O plugin Lead List API é uma solução para WordPress que permite criar uma API RESTful para receber e gerenciar leads diretamente do seu site WordPress. Ele oferece uma maneira conveniente e segura de coletar informações de leads de diferentes fontes, como formulários de contato, páginas de destino e outros pontos de entrada.
 Funcionalidades Principais
