@@ -1,12 +1,9 @@
 <?php
 /**
- * Settings admin page
- * leads_table_template.php
+ * table leads admin page
+ *  
  */
 ?> 
-
-  
-
 <form method="post" action="<?php echo admin_url('admin.php'); ?>">
     <button type="submit">Excluir Leads Selecionados</button> <!-- Botão de envio para excluir leads selecionados -->
 

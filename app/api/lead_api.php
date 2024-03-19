@@ -12,15 +12,39 @@ if (!defined('ABSPATH')) {
  
 // Register admin menu
 add_action( 'admin_menu', 'leadlistapi_admin_menu' );
+
 function leadlistapi_admin_menu() {
-    add_options_page(
-        'Lead List API',
-        'Lead List API',
-        'manage_options',
-        'leadlistapi_settings_page',
-        'leadlistapi_settings_page_cb'
+    // Página principal para o plugin
+    add_menu_page(
+        'Lead List API',          // Título da página
+        'Lead List API',          // Texto do menu
+        'manage_options',         // Capacidade necessária para acessar a página
+        'leadlistapi_main_page',  // Slug da página
+        'leadlistapi_main_page_cb' // Função que renderiza a página
     );
+
+    // Submenu para exibir os leads cadastrados
+    add_submenu_page(
+        'leadlistapi_main_page',  // Slug da página pai (main page)
+        'Leads Cadastrados',      // Título da página
+        'Leads Cadastrados',      // Texto do menu
+        'manage_options',         // Capacidade necessária para acessar a página
+        'leadlistapi_leads_page', // Slug da página
+        'leadlistapi_leads_page_cb' // Função que renderiza a página
+    );
+
+    // Submenu para gerar token
+    add_submenu_page(
+        'leadlistapi_main_page',  // Slug da página pai (main page)
+        'Gerar Token',            // Título da página
+        'Gerar Token',            // Texto do menu
+        'manage_options',         // Capacidade necessária para acessar a página
+        'leadlistapi_token_page', // Slug da página
+        'leadlistapi_token_page_cb' // Função que renderiza a página
+    );
+ 
 }
+
 
 /**
  * Registra o Endpoint para receber os leads. 
@@ -46,14 +70,37 @@ add_action('rest_api_init', function () {
  * Função para verificar se o token enviado na solicitação corresponde ao token esperado.
  */
 function verify_api_token() {
-    $token = '123456789@987654321'; // Seu token personalizado
-    // Verifica se o token enviado na solicitação corresponde ao token esperado
-    $sent_token = isset($_SERVER['HTTP_AUTHORIZATION']) ? str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']) : '';
-    if ($sent_token !== $token) {
-        return false; // Token inválido
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'leadlistapi_token';
+    
+    // Verifica se o cabeçalho Authorization está presente na solicitação
+    if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        $response = new WP_REST_Response(array(
+            'error' => 'Token não fornecido',
+        ), 401);
+        wp_send_json_error($response);
     }
+
+    // Extrai o token do cabeçalho Authorization
+    $sent_token = str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']);
+
+    // Consulta o banco de dados para verificar se o token está presente
+    $token_exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table_name WHERE token = %s", $sent_token));
+
+    // Verifica se o token existe no banco de dados
+    if (!$token_exists) {
+        $response = new WP_REST_Response(array(
+            'error' => 'Token inválido',
+        ), 401);
+        wp_send_json_error($response);
+    }
+
     return true; // Token válido
 }
+
+
+
+
 
 /**
  * Função para limitar o número de envios por cliente.

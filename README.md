@@ -32,6 +32,7 @@ curl -X POST \
     "cidade": "São Paulo"
 }'
 
+
 Configurações
 
 O plugin fornece uma página de configurações no painel de administração do WordPress, onde você pode personalizar o endpoint da API, gerenciar o token de autenticação e visualizar estatísticas de leads recebidos.

@@ -42,7 +42,7 @@ function api_post_data_lead($request)
 }
 
 /**
- * Função auxiliar para processar os dados do lead.
+ * Função para salvar os dados do lead.
  */
 function processar_lead($data_lead)
 {
