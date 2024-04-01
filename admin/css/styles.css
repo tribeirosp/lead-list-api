@@ -1,0 +1,40 @@
+.lead-list-api-menu-admin {
+    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    width: 97%;
+}
+
+.lead-list-api-menu-admin h2 {
+    font-size: 20px;
+    text-transform: uppercase;
+    padding: 0;
+    margin: 10px 0 15px 15px;
+}
+
+.lead-list-api-menu-admin ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.lead-list-api-menu-admin li {
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
+.lead-list-api-menu-admin a {
+    display: block;
+    padding: 8px 15px;
+    color: #333;
+    text-decoration: none;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+.lead-list-api-menu-admin a:hover {
+    background-color: #ddd;
+}

@@ -4,7 +4,33 @@
  *  
  */
 ?> 
-<form method="post" action="<?php echo admin_url('admin.php'); ?>">
+        
+
+<?php   include LEADLISTAPI_DIR_PATH . '/includes/views/templates/parts/menu.php';  ?>
+
+<div class="wrap">
+    <h1><?php _e( 'Gerar Token', 'lead-list-api' ); ?></h1>
+    <p><?php _e( 'Para usar a API é nescessario gerar um tokem de acesso', 'lead-list-api' ); ?></p>
+    <form method="post" action="<?php echo admin_url('admin.php'); ?>">
+        <table class="form-table">
+            <tr>
+                <th scope="row"><label for="token_name"><?php _e( 'Nome do Token', 'lead-list-api' ); ?></label></th>
+                <td><input type="text" id="token_name" name="token_name" class="regular-text" required></td>
+            </tr>
+        </table>
+        <input type="hidden" name="action" value="save_token">
+        <?php wp_nonce_field( 'save_token_nonce', 'save_token_nonce_field' ); ?>
+        <?php submit_button( __( 'Gerar Token', 'lead-list-api' ), 'primary', 'submit_token' ); ?>
+    </form>
+</div>
+
+
+
+<?php if (empty($tokens)) {  
+  echo '<p>' . __('Nenhum tokens encontrado', 'lead-list-api') . '</p>'; return;  ?>
+ <?php } else { ?> 
+
+    <form method="post" action="<?php echo admin_url('admin.php'); ?>">
     <button type="submit">Excluir Token Selecionado</button> <!-- Botão de envio para excluir tokens selecionados -->
 
     <input type="hidden" name="action" value="delete_selected_tokens"> <!-- Ação para indicar a exclusão de tokens selecionados -->
@@ -31,11 +57,15 @@
                 <td style="border: 1px solid black; padding: 8px;"><?php echo $row['token_name']; ?></td>
                 <td style="border: 1px solid black; padding: 8px;"><?php echo $row['token']; ?></td>
                
-                <td style="border: 1px solid black; padding: 8px;"><?php echo $row['data_geracao']; ?></td>
+                <td style="border: 1px solid black; padding: 8px;"><?php echo $row['generation_date']; ?></td>
             </tr>
         <?php endforeach; ?>
     </table>
 </form>
+
+<?php  } ?>
+ 
+
 
 <!-- Exibição da paginação -->
 <?php if ($total_pages > 1) : ?>
