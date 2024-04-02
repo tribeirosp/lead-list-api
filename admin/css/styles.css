@@ -5,7 +5,7 @@
     border-radius: 5px;
     margin-bottom: 20px;
     margin-top: 20px;
-    width: 97%;
+    width: 90%;
 }
 
 .lead-list-api-menu-admin h2 {
@@ -37,4 +37,85 @@
 
 .lead-list-api-menu-admin a:hover {
     background-color: #ddd;
+}
+
+.lead-lest-api .wrap h1 {
+
+    text-transform: uppercase;
+}
+
+.lead-lest-api .wrap p { 
+    margin: 0 0 15px 0;
+    font-size: 18px;
+}
+
+.lead-lest-api .delete-leads,
+.lead-lest-api  .delete-token { 
+  
+  margin: 0 20px 25px 0;
+ }
+
+
+ /* Estilo para a tabela */
+.lead-lest-api .leads-list-teble {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+/* Estilo para o cabeçalho da tabela */
+.lead-lest-api .leads-list-teble th {
+    background-color: #cacaca;
+    color: #333;
+    font-weight: bold;
+    padding: 8px; 
+    border: 1px solid black; 
+    text-transform: capitalize;
+}
+
+/* Estilo para as linhas pares */
+.lead-lest-api .leads-list-teble  tr:nth-child(even) {
+    background-color: #f9f9f9; 
+}
+
+/* Estilo para as células */
+.lead-lest-api .leads-list-teble  td {
+    border: 1px solid black; 
+    padding: 8px; 
+    text-align: center;
+}
+
+
+/* Estilo para o formulário */
+.lead-lest-api form {
+    display: flex; /* Exibe os elementos do formulário em linha */
+    flex-wrap: wrap; /* Permite que os elementos quebrem para a próxima linha, se necessário */
+}
+
+/* Estilo para cada item do formulário token */
+.lead-lest-api .form-token ul {
+    list-style: none;
+    padding: 0;
+    display: inline-block;
+}
+
+/* Estilo para cada item do formulário */
+.lead-lest-api .form-token ul li {
+    margin-right: 20px;
+  display: inline-block;
+}
+
+/* Estilo para os rótulos do formulário */
+.lead-lest-api .form-token ul li label {
+    display: block;  
+    margin-bottom: 5px;  
+}
+
+/* Estilo para os campos de entrada do formulário */
+.lead-lest-api .form-token ul li input[type="text"] {
+    width: 200px;  
+}
+
+/* Estilo para o botão do formulário */
+.lead-lest-api .form-token ul li .button-primary {
+    margin-top: 5px;  
 }

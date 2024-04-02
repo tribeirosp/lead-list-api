@@ -12,23 +12,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /** Constantes globais  */ 
-define( 'LEADLISTAPI_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'LEADLISTAPI_DIR_URL', plugin_dir_url(__FILE__) ); 
-define( 'LEADLISTAPI_DOMAIN', 'leadlistapi' );  
+//define( 'LEADLISTAPI_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+//define( 'LEADLISTAPI_DIR_URL', plugin_dir_url(__FILE__) ); 
+//define( 'LEADLISTAPI_DOMAIN', 'leadlistapi' );  
 define( 'LEADLISTAPI_DIR_PATH', dirname( __FILE__ ) );  
+define( 'LEADLISTAPI_TEMPLATE_PATH', LEADLISTAPI_DIR_PATH . '/includes/views/templates/' ); 
 define( 'LEADLISTAPI_DB_TABLE_LEAD',       'lead_list_api' );   
 define( 'LEADLISTAPI_DB_TABLE_CONVERSION', 'lead_list_api_conversion');   
 define( 'LEADLISTAPI_DB_TABLE_TOKEN',      'lead_list_api_token');   
-define( 'LEADLISTAPI_TEMPLATE_PATH', LEADLISTAPI_DIR_PATH . '/includes/views/templates/' ); 
+
 
 
 // Outros arquivos do plugin
 require_once LEADLISTAPI_DIR_PATH . '/admin/lead-list-api-admin.php';
- 
-
 require_once LEADLISTAPI_DIR_PATH . '/includes/controllers/lead-controller.php';
-
-
 require_once LEADLISTAPI_DIR_PATH . '/includes/models/lead-model.php';
 require_once LEADLISTAPI_DIR_PATH . '/includes/models/admin-model.php';
 

@@ -92,20 +92,26 @@ class Admin_Model {
         }
     }
  
-
     public static function LeadsData() {
         global $wpdb; // variável $wpdb para a conexão com o banco de dados
     
         $table_leads = $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD;
         $conversion_table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_CONVERSION;
     
+        // Consulta para obter o número total de leads
+        $total_leads_query = $wpdb->get_var("
+            SELECT COUNT(idlead) 
+            FROM $table_leads
+        ");
+        $total_leads = intval($total_leads_query);
+    
         // SQL para recuperar os dados cadastrados
         $results = $wpdb->get_results("
-        SELECT l.*, MAX(CONCAT(c.data_conversion, ' ', c.time_conversion)) AS last_conversion_datetime, COUNT(c.id_conversion) AS num_conversions
-        FROM $table_leads l
-        LEFT JOIN $conversion_table_name c ON l.idlead = c.id_lead
-        GROUP BY l.idlead
-        ORDER BY last_conversion_datetime DESC
+            SELECT l.*, MAX(CONCAT(c.data_conversion, ' ', c.time_conversion)) AS last_conversion_datetime, COUNT(c.id_conversion) AS num_conversions
+            FROM $table_leads l
+            LEFT JOIN $conversion_table_name c ON l.idlead = c.id_lead
+            GROUP BY l.idlead
+            ORDER BY last_conversion_datetime DESC
         ");
     
         $data = array(); // Array para armazenar os dados recuperados
@@ -124,18 +130,17 @@ class Admin_Model {
             $data[] = $row; // Adicionar a linha ao array de dados
         }
     
-        return $data; // Retorna os dados  
+        return array(
+            'leads' => $data,
+            'total_leads' => $total_leads // Retorna o número total de leads
+        ); 
     }
-    
-    public static function show_home_admin() {
-    
-        include LEADLISTAPI_DIR_PATH . '/includes/views/templates/parts/home-plugin.php';
-    }
-    
 
+    
     public static function show_leads_admin() {
-        $data = Admin_Model::LeadsData();
-
+        $leads_data = Admin_Model::LeadsData();
+        $data = $leads_data['leads']; // Dados dos leads
+        $total_leads = $leads_data['total_leads']; // Número total de leads
     
         // número de itens a serem exibidos por página
         $items_per_page = 100;
@@ -151,9 +156,7 @@ class Admin_Model {
     
         // Obtenha os itens a serem exibidos na página atual usando o deslocamento e o número de itens por página
         $items_to_display = array_slice($data, $offset, $items_per_page);
-          
     
-         
         // Dados necessários para o template
         $headers = !empty($data[0]) ? array_keys($data[0]) : array();
         $pagination_args = array(
@@ -170,10 +173,15 @@ class Admin_Model {
         );
     
         // arquivo de template
- 
         include LEADLISTAPI_DIR_PATH . '/includes/views/templates/parts/leads_table_template.php';
+    
+        
+   
     }
+    
+    
 
+    
     public static function delete_selected_leads() {
         if (isset($_POST['action']) && $_POST['action'] === 'delete_selected_leads') {
             global $wpdb;
@@ -216,6 +224,12 @@ class Admin_Model {
             wp_redirect(admin_url("admin.php?page=lead-list-api-leads&paged=$paged"));
             exit;
         }
+    }
+
+       
+    public static function show_home_admin() {
+    
+        include LEADLISTAPI_DIR_PATH . '/includes/views/templates/parts/home-plugin.php';
     }
 
     public static function save_token() {
