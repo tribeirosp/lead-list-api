@@ -61,6 +61,122 @@ function check_rate_limit()
         return false; // Excede o limite de taxa
     }
 }
+ /**
+ * Função para salvar os dados do lead.
+ */
+function send_lead_bd($data_lead) {
+    global $wpdb;
+    $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD;
+    $token_table_name =  $wpdb->prefix . LEADLISTAPI_DB_TABLE_TOKEN;
+
+    // Obtém os nomes das colunas da tabela
+    $column_names = $wpdb->get_col("DESC $table_name");
+
+    // Verifica se algum campo do JSON não existe na tabela, exceto 'page_conversion'
+    $invalid_fields = array_diff(array_keys($data_lead), $column_names);
+
+    // Remove 'page_conversion' da lista de campos inválidos, se estiver presente
+    if (($key = array_search('page_conversion', $invalid_fields)) !== false) {
+        unset($invalid_fields[$key]);
+    }
+
+    if (!empty($invalid_fields)) {
+        // Campos inválidos foram encontrados
+        $mensagem = 'Os seguintes campos não exite na api: ' . implode(', ', $invalid_fields);
+        $response = new WP_REST_Response($mensagem, 400); // Código de status 400 para indicar uma solicitação inválida
+        return $response;
+    }
+  
+    // Extrai o token do cabeçalho e remove o 'Bearer'
+    $get_sent_token = str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']);
+
+    // Consulta o banco de dados para verificar o token name
+    $token_name = $wpdb->get_var($wpdb->prepare("SELECT token_name FROM $token_table_name WHERE token = %s", $get_sent_token));
+    try {
+
+        // Obter dados do JSON
+        $email = isset($data_lead['email']) ? filter_var($data_lead['email'], FILTER_VALIDATE_EMAIL) : '';
+        $page_conversion  = isset($data_lead['page_conversion']) ? $data_lead['page_conversion'] : '';
+
+        // Verificar se o e-mail é válido
+        if (!$email) {
+            $response = new WP_REST_Response('E-mail inválido', 400);
+            return $response;
+        }
+        // Verificar se o lead já existe na base de dados
+        $existing_lead = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE email = %s", $email));
+
+        if ($existing_lead) {
+
+            // monta a lista com os campos que foram atualizados
+            $dados_atualizados = array();
+            foreach ($data_lead as $key => $value) {
+                // remove a propriedade page_conversion do array $dados_atualizados
+                if ($key !== 'page_conversion') {
+                    // Verificar se o valor atual é diferente do valor existente
+                    if ($existing_lead->$key !== $value) {
+                        // Adicionar a chave e o valor ao array $dados_atualizados
+                        $dados_atualizados[$key] = sanitize_text_field($value);
+                    }
+                }
+            }
+            
+ 
+            if (!empty($dados_atualizados)) {
+
+                $wpdb->update($table_name, $dados_atualizados, array('email' =>$email ));
+                // Inserir dados de conversão  
+                insert_conversion_data($existing_lead->lead_id, $data_lead['page_conversion'], $token_name); 
+                $mensagem = __('Lead atualizado', 'lead-list-api');
+                $response = new WP_REST_Response($mensagem, 200);
+                return $response;
+
+ 
+            } else {
+                 // Inserir dados de conversão 
+                insert_conversion_data($existing_lead->lead_id, $page_conversion, $token_name);    
+                $menssagen =  __('Nenhum dado foi modificado', 'lead-list-api');
+                $response = new WP_REST_Response($menssagen, 200);
+                return $response;
+            
+            }
+        } else {
+
+
+            //monta o array com os dados enviado para api
+            $lead_fields_info = array();
+            foreach ($data_lead as $key => $value) {
+                // Verificar se o valor não está vazio
+                if (!empty($value)) {
+                    // remove a propriedade page_conversion do array $lead_fields_info
+                    if ($key !== 'page_conversion') {
+                        // Sanitizar o valor antes de atribuí-lo ao array $lead_fields_info
+                        $lead_fields_info[$key] = sanitize_text_field($value);
+                    }
+                }
+            }
+
+            // Se o lead não existe, inserir um novo cadastro
+            $wpdb->insert(
+                $table_name,
+                $lead_fields_info
+                );
+                // Inserir dados de conversão
+                insert_conversion_data($wpdb->insert_id, $page_conversion, $token_name);
+
+                $menssagen =  __('Novo lead inserido', 'lead-list-api');
+                $response = new WP_REST_Response($menssagen, 200);
+                return $response;
+
+        }
+    } catch (Exception $e) {
+        // Tratamento de erro em caso de exceção genérica
+        $message =  __('Erro ao processar os dados do lead:', 'lead-list-api');
+        $response = new WP_REST_Response($message. ' '. $e->getMessage(), 500);
+        $response->header('Content-Type', 'application/json');
+        return $response;
+    }
+}
  
 
 /**
@@ -96,97 +212,7 @@ function validate_data_api($request)
     return $response;
 }
 
-/**
- * Função para salvar os dados do lead.
- */
-function send_lead_bd($data_lead) {
-    global $wpdb;
-    $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD;
-    $token_table_name =  $wpdb->prefix . LEADLISTAPI_DB_TABLE_TOKEN;
-    // Extrai o token do cabeçalho e remove o 'Bearer'
-    $get_sent_token = str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']);
-    // Consulta o banco de dados para verificar o token name
-    $token_name = $wpdb->get_var($wpdb->prepare("SELECT token_name FROM $token_table_name WHERE token = %s", $get_sent_token));
-    try {
-        // Obter dados do JSON
-        $name = sanitize_text_field($data_lead['name']);
-        $email = isset($data_lead['email']) ? filter_var($data_lead['email'], FILTER_VALIDATE_EMAIL) : '';
-        $telephone = isset($data_lead['telephone']) ? sanitize_text_field($data_lead['telephone']) : '';
-        $state = isset($data_lead['state']) ? sanitize_text_field($data_lead['state']) : '';
-        $city = isset($data_lead['city']) ? sanitize_text_field($data_lead['city']) : '';
-        $page_conversion  = isset($data_lead['page_conversion']) ? $data_lead['page_conversion'] : '';
 
-        // Verificar se o e-mail é válido
-        if (!$email) {
-            $response = new WP_REST_Response('E-mail inválido', 400);
-            return $response;
-        }
-
-        // Verificar se o lead já existe na base de dados
-        $existing_lead = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE email = %s", $email));
-
-        if ($existing_lead) {
-            // Se o lead já existe, atualizar apenas os campos modificados
-            $dados_atualizados = array();
-            if ($existing_lead->name !== $name) {
-                $dados_atualizados['name'] = $name;
-            }
-            if ($existing_lead->telephone !== $telephone) {
-                $dados_atualizados['telephone'] = $telephone;
-            }
-            if ($existing_lead->state !== $state) {
-                $dados_atualizados['state'] = $state;
-            }
-            if ($existing_lead->city !== $city) {
-                $dados_atualizados['city'] = $city;
-            }
-            if (!empty($dados_atualizados)) {
-                $wpdb->update($table_name, $dados_atualizados, array('email' => $email));
-                
-                // Inserir dados de conversão  
-                insert_conversion_data($existing_lead->idlead, $page_conversion, $token_name); 
-
-                $menssagen =  __('Lead atualizado', 'lead-list-api');
-                $response = new WP_REST_Response($menssagen, 200);
-                return $response;
-
-            } else {
-                 // Inserir dados de conversão 
-                insert_conversion_data($existing_lead->idlead, $page_conversion, $token_name);    
-
-                $menssagen =  __('Nenhum dado foi modificado', 'lead-list-api');
-                $response = new WP_REST_Response($menssagen, 200);
-                return $response;
-            
-            }
-        } else {
-            // Se o lead não existe, inserir um novo cadastro
-            $wpdb->insert(
-                $table_name,
-                array(
-                    'name' => $name,
-                    'email' => $email,
-                    'telephone' => $telephone,
-                    'state' => $state,
-                    'city' => $city 
-                )
-            );
-                // Inserir dados de conversão
-                insert_conversion_data($wpdb->insert_id, $page_conversion, $token_name);
-
-                $menssagen =  __('Novo lead inserido', 'lead-list-api');
-                $response = new WP_REST_Response($menssagen, 200);
-                return $response;
-
-        }
-    } catch (Exception $e) {
-        // Tratamento de erro em caso de exceção genérica
-        $message =  __('Erro ao processar os dados do lead:', 'lead-list-api');
-        $response = new WP_REST_Response($message. ' '. $e->getMessage(), 500);
-        $response->header('Content-Type', 'application/json');
-        return $response;
-    }
-}
 
 function insert_conversion_data($id_lead, $page_conversion, $token_name) {
   global $wpdb;

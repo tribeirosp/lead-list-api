@@ -17,13 +17,13 @@ class Lead_Model {
         // Verifica se a tabela já existe no banco de dados
         if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) != $table_name ) {
             $sql = "CREATE TABLE $table_name (
-             idlead INT NOT NULL AUTO_INCREMENT,
+             lead_id INT NOT NULL AUTO_INCREMENT,
              name VARCHAR(255) NOT NULL,
              email VARCHAR(255) NOT NULL,
-             state VARCHAR(2),
+             state VARCHAR(255),
              city VARCHAR(255),
              telephone VARCHAR(255),
-             PRIMARY KEY (idlead)
+             PRIMARY KEY (lead_id)
             ) ENGINE=MyISAM $charset_collate;";
             require_once ABSPATH . 'wp-admin/includes/upgrade.php';
             dbDelta( $sql );
@@ -45,7 +45,7 @@ class Lead_Model {
              page_conversion VARCHAR(255),
              token_conversion_name VARCHAR(255),
              PRIMARY KEY (id_conversion),
-             FOREIGN KEY (id_lead) REFERENCES " . $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD . "(idlead)
+             FOREIGN KEY (id_lead) REFERENCES " . $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD . "(lead_id)
             ) ENGINE=MyISAM $charset_collate;";
             require_once ABSPATH . 'wp-admin/includes/upgrade.php';
             dbDelta( $sql );

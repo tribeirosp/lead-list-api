@@ -12,9 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /** Constantes globais  */ 
-//define( 'LEADLISTAPI_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-//define( 'LEADLISTAPI_DIR_URL', plugin_dir_url(__FILE__) ); 
-//define( 'LEADLISTAPI_DOMAIN', 'leadlistapi' );  
 define( 'LEADLISTAPI_DIR_PATH', dirname( __FILE__ ) );  
 define( 'LEADLISTAPI_TEMPLATE_PATH', LEADLISTAPI_DIR_PATH . '/includes/views/templates/' ); 
 define( 'LEADLISTAPI_DB_TABLE_LEAD',       'lead_list_api' );   

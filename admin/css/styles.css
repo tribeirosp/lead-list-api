@@ -1,11 +1,11 @@
 .lead-list-api-menu-admin {
-    background-color: #f4f4f4;
+   
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 5px;
-    margin-bottom: 20px;
-    margin-top: 20px;
-    width: 90%;
+    margin: 10px 20px 0 2px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
 }
 
 .lead-list-api-menu-admin h2 {
@@ -48,20 +48,21 @@
     margin: 0 0 15px 0;
     font-size: 18px;
 }
-
+    
 .lead-lest-api .delete-leads,
 .lead-lest-api  .delete-token { 
-  
-  margin: 0 20px 25px 0;
+    margin-right: 20px;
+    margin-left: auto;
+    margin-top: 25px;
+    margin-bottom: 25px;
  }
 
-
+ 
  /* Estilo para a tabela */
 .lead-lest-api .leads-list-teble {
     border-collapse: collapse;
-    width: 100%;
-}
-
+    margin: 10px 20px 0 2px;
+}  
 /* Estilo para o cabeçalho da tabela */
 .lead-lest-api .leads-list-teble th {
     background-color: #cacaca;
@@ -118,4 +119,77 @@
 /* Estilo para o botão do formulário */
 .lead-lest-api .form-token ul li .button-primary {
     margin-top: 5px;  
+}
+.lead-lest-api  .wrap {
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.lead-lest-api .wrap h1, 
+.lead-lest-api .wrap h2 {
+    margin-bottom: 10px;
+}
+
+.lead-lest-api  form {
+    margin-bottom: 20px;
+}
+
+.lead-lest-api  form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.lead-lest-api  form input[type="text"] {
+    width: 300px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+
+
+ 
+.lead-lest-api  .edit-field {
+    list-style: none;
+    padding: 0;
+    width: auto;
+    display: table;
+}
+
+.lead-lest-api  .edit-field li {
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.lead-lest-api  .edit-field li span {
+    font-weight: bold;
+}
+
+.lead-lest-api  .edit-field li form {
+    margin-top: 5px;
+}
+
+.lead-lest-api  .edit-field li form input[type="text"] {
+    margin-right: 10px;
+}
+
+.lead-lest-api  .edit-field li form button {
+    cursor: pointer;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+}
+
+.lead-lest-api  .edit-field li form button[type="submit"] {
+    background-color: #0073aa;
+    color: #fff;
+    margin: 0 5px;
+}
+
+.lead-lest-api  .edit-field li form button[type="submit"]:hover {
+    background-color: #005e8d;
 }

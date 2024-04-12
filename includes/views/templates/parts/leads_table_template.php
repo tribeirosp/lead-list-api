@@ -41,7 +41,7 @@
                 <?php  foreach ($items_to_display as $row) : ?>
                     <tr>
                         <td style="border: 1px solid black; padding: 8px;">
-                            <input type="checkbox" name="lead_ids[]" value="<?php echo $row['idlead']; ?>">
+                            <input type="checkbox" name="lead_ids[]" value="<?php echo $row['lead_id']; ?>">
                         </td> <!-- Campo de checkbox para marcar o lead -->
                         <?php foreach ($row as $key => $value) : ?>
                             <td style="border: 1px solid black; padding: 8px;">

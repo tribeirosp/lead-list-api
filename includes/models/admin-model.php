@@ -6,9 +6,7 @@
 if (!defined('ABSPATH')) {
     exit;
 } 
-// Inicia a sessão no início do arquivo PHP
 session_start();
-
 /**
 * Classe Admin_Model
 * Responsável por gerenciar as operações relacionadas a area administrativa.
@@ -26,18 +24,19 @@ class Admin_Model {
             // Nome do arquivo CSV
             $filename = 'lead_list_api_data.csv';
     
-            // Cabeçalhos do arquivo CSV
-            $headers = array(
-                'ID',
-                'Name',
-                'Email',
-                'State',
-                'City',
-                'Telephone',
-                'Data Conversion',
-                'Time Conversion',
-                'Page Conversion'
-            );
+            // Cabeçalhos do arquivo CSV (obtidos dinamicamente)
+            $headers = array();
+    
+            // Obtém os nomes das colunas da tabela de leads
+            $columns_leads = $wpdb->get_col( "DESC {$table_leads}", 0 );
+    
+            // Adicionar os nomes das colunas da tabela de leads ao cabeçalho
+            foreach ( $columns_leads as $column ) {
+                $headers[] = $column;
+            }
+    
+            // Adicionar as colunas específicas da tabela de conversão ao cabeçalho
+            $headers = array_merge($headers, array('Data Conversion', 'Time Conversion', 'Page Conversion'));
     
             // Abre um arquivo temporário para escrita.
             $arquiv_temp = fopen( 'php://temp', 'w' );
@@ -61,7 +60,7 @@ class Admin_Model {
                 // Consulta para selecionar um subconjunto dos dados da tabela
                 $query = "SELECT l.*, c.data_conversion, c.time_conversion, c.page_conversion
                           FROM $table_leads l
-                          LEFT JOIN $table_conversion c ON l.idlead = c.id_lead
+                          LEFT JOIN $table_conversion c ON l.lead_id = c.id_lead
                           LIMIT $offset, $rows_per_query";
     
                 // Obter resultados da consulta
@@ -91,7 +90,7 @@ class Admin_Model {
             exit;
         }
     }
- 
+    
     public static function LeadsData() {
         global $wpdb; // variável $wpdb para a conexão com o banco de dados
     
@@ -100,17 +99,20 @@ class Admin_Model {
     
         // Consulta para obter o número total de leads
         $total_leads_query = $wpdb->get_var("
-            SELECT COUNT(idlead) 
+            SELECT COUNT(lead_id) 
             FROM $table_leads
         ");
         $total_leads = intval($total_leads_query);
+    
+        // Obtém os nomes das colunas da tabela de leads
+        $columns_leads = $wpdb->get_col( "DESC {$table_leads}", 0 );
     
         // SQL para recuperar os dados cadastrados
         $results = $wpdb->get_results("
             SELECT l.*, MAX(CONCAT(c.data_conversion, ' ', c.time_conversion)) AS last_conversion_datetime, COUNT(c.id_conversion) AS num_conversions
             FROM $table_leads l
-            LEFT JOIN $conversion_table_name c ON l.idlead = c.id_lead
-            GROUP BY l.idlead
+            LEFT JOIN $conversion_table_name c ON l.lead_id = c.id_lead
+            GROUP BY l.lead_id
             ORDER BY last_conversion_datetime DESC
         ");
     
@@ -119,23 +121,21 @@ class Admin_Model {
         // Iterar pelos resultados e armazenar os dados no array
         foreach ($results as $result) {
             $row = array(); // Array de valores de cada linha
-            $row['idlead'] = $result->idlead;
-            $row['name'] = $result->name;
-            $row['email'] = $result->email;
-            $row['telephone'] = $result->telephone;
-            $row['state'] = $result->state;
-            $row['city'] = $result->city;
+            
+            // Adiciona todas as colunas da tabela de leads ao array
+            foreach ($columns_leads as $column) {
+                $row[$column] = $result->$column;
+            }
             $row['last conversion datetime'] = $result->last_conversion_datetime;
             $row['nº conversions'] = $result->num_conversions;
             $data[] = $row; // Adicionar a linha ao array de dados
         }
-    
         return array(
             'leads' => $data,
             'total_leads' => $total_leads // Retorna o número total de leads
         ); 
     }
-
+    
     
     public static function show_leads_admin() {
         $leads_data = Admin_Model::LeadsData();
@@ -180,8 +180,6 @@ class Admin_Model {
     }
     
     
-
-    
     public static function delete_selected_leads() {
         if (isset($_POST['action']) && $_POST['action'] === 'delete_selected_leads') {
             global $wpdb;
@@ -207,17 +205,17 @@ class Admin_Model {
                     // Exclui o registro da tabela de leads
                     $wpdb->delete(
                         $table_name,
-                        array('idlead' => $lead_id),
+                        array('lead_id' => $lead_id),
                         array('%d')
                     );
                 }
                 // mensagem de sucesso
-                $menssagen =  __('Exclusão realizada com sucesso.', 'lead-list-api');
-                $_SESSION['admin_notice'] = ['message' => $menssagen, 'class' => 'notice-success'];
+                $message =  __('Exclusão realizada com sucesso.', 'lead-list-api');
+                $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-success'];
             } else {
                 // mensagem de aviso
-                $menssagen =  __('Nenhum lead foi selecionado para exclusão.', 'lead-list-api');
-                $_SESSION['admin_notice'] = ['message' => $menssagen, 'class' => 'notice-warning'];
+                $message =  __('Nenhum lead foi selecionado para exclusão.', 'lead-list-api');
+                $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-warning'];
             }
     
             // Redireciona de volta para a mesma página de leads após a exclusão
@@ -232,6 +230,144 @@ class Admin_Model {
         include LEADLISTAPI_DIR_PATH . '/includes/views/templates/parts/home-plugin.php';
     }
 
+ 
+    public static function   generate_example_json() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD;
+    
+        // Obtém os nomes dos campos da tabela
+        $fields = $wpdb->get_results("DESCRIBE $table_name");
+    
+        $json_data = array();
+    
+        // Percorre os campos e adiciona ao JSON de exemplo
+        foreach ($fields as $field) {
+            // Ignora campos específicos, se necessário
+            if (in_array($field->Field, ['lead_id'])) {
+                continue;
+            }
+    
+            // Adiciona o campo ao JSON de exemplo com um valor de exemplo
+            $json_data[$field->Field] = "exemplo_" . str_replace('_', ' ', $field->Field);
+        }
+    
+        // Adiciona o campo "page_conversion" ao JSON de exemplo
+        $json_data["page_conversion"] = "www.site.com";
+    
+        // Converte o array associativo em JSON formatado
+        $json_string = json_encode($json_data, JSON_PRETTY_PRINT);
+    
+        // Exibe o JSON de exemplo
+        echo $json_string;
+    }
+
+    public static function show_fields_admin() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD;
+    
+         // formulário de adicionar campo foi submetido
+        if (isset($_POST['add_field'])) {
+            $new_field_name = sanitize_text_field($_POST['new_field_name']);
+            $result = self::add_field_to_lead_table($new_field_name);
+            if ($result === true) {
+                $message = __('Campo adicionado com sucesso.', 'lead-list-api');
+                $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-success'];
+            } else {
+                //   mensagem de erro personalizada
+                $_SESSION['admin_notice'] = ['message' => $result, 'class' => 'notice-error'];
+            }
+            wp_redirect(admin_url('admin.php?page=lead-list-api-fields'));
+            exit;
+        }
+
+        //  formulário de exclusão/edição de campo foi submetido
+        if (isset($_POST['action'])) {
+            $action = $_POST['action'];
+            $field_name = sanitize_text_field($_POST['field_name']);
+            $new_field_name = sanitize_text_field($_POST['new_field_name']);
+    
+            if ($action === 'delete_field') {
+                if (self::delete_field_from_lead_table($field_name)) {
+                    $message = __('Campo excluído com sucesso.', 'lead-list-api');
+                    $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-success'];
+                } else {
+                    $message = __('O campo não pode ser excluído.', 'lead-list-api');
+                    $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-error'];
+                }
+            } elseif ($action === 'edit_field') {
+                if (self::edit_field_in_lead_table($field_name, $new_field_name)) {
+                    $message = __('Campo renomeado com sucesso.', 'lead-list-api');
+                    $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-success'];
+                } else {
+                    $message = __('O nome do campo não pode conter caracteres especiais, espaços ou acentos.', 'lead-list-api');
+                    $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-error'];
+                } 
+            }
+    
+            wp_redirect(admin_url('admin.php?page=lead-list-api-fields'));
+            exit;
+        }
+    
+        // Obtenha todos os campos da tabela
+        $fields = $wpdb->get_results("DESCRIBE $table_name");
+    
+          // Arquivo de template
+          include LEADLISTAPI_DIR_PATH . '/includes/views/templates/parts/page-manage-fields.php';
+    }
+    
+    public static function add_field_to_lead_table($new_field_name) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD;
+
+        // Verifica se o nome do campo é válido
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $new_field_name)) {
+            $message = __('O campo não pode conter caracteres especiais, espaços ou acentos.', 'lead-list-api');
+            return  $message; 
+        }
+
+        // Verifica se o campo já existe na tabela
+        $existing_fields = $wpdb->get_results("DESCRIBE $table_name");
+        foreach ($existing_fields as $field) {
+            if ($field->Field == $new_field_name) {
+                $message = __('O campo já existe.', 'lead-list-api');
+                return  $message; 
+            }
+        }
+
+        // Adiciona o novo campo à tabela
+        $wpdb->query("ALTER TABLE $table_name ADD $new_field_name VARCHAR(255) NULL");
+
+        return true; // Campo adicionado com sucesso
+    }
+
+    public static function edit_field_in_lead_table($field_name, $new_field_name) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD;
+
+        // Confirmação antes de renomear
+        if (preg_match('/^[A-Za-z0-9_]+$/', $new_field_name)) {
+            $wpdb->query("ALTER TABLE $table_name CHANGE $field_name $new_field_name VARCHAR(255) NULL");
+            return true; // Campo renomeado com sucesso
+        } else {
+            return false; // Nome do campo inválido
+        }
+    }
+ 
+    public static function delete_field_from_lead_table($field_name) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD;
+
+        // Confirmação antes de excluir
+        if (!in_array($field_name, ['lead_id', 'name', 'email', 'state', 'city', 'telephone'])) {
+            $wpdb->query("ALTER TABLE $table_name DROP $field_name");
+            return true; // Campo excluído com sucesso
+        } else {
+            return false; // Campo não pode ser excluído
+        }
+    }
+    
+
+
     public static function save_token() {
 
         if (isset($_POST['action']) && $_POST['action'] === 'save_token') {
@@ -239,7 +375,7 @@ class Admin_Model {
             if (isset($_POST['save_token_nonce_field']) && wp_verify_nonce($_POST['save_token_nonce_field'], 'save_token_nonce')) {
                 global $wpdb;
                 $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_TOKEN;
-    
+     
                  
                 if (isset($_POST['token_name'])) {
                     
@@ -257,7 +393,7 @@ class Admin_Model {
                             'generation_date' => current_time('mysql')
                         )
                     );
-                    var_dump($wpdb->last_error);
+                     
 
                     $_SESSION['admin_notice'] = ['message' =>  $wpdb->last_error . 'Token salvo com sucesso. ', 'class' => 'notice-success'];
                 } else {
@@ -269,6 +405,7 @@ class Admin_Model {
             }
             // Redireciona de volta para a página de configurações após salvar o token
             wp_redirect(admin_url("admin.php?page=lead-list-api-token"));
+
             exit;
         }
     }

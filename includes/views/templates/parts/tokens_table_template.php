@@ -20,7 +20,7 @@
                 <li>
                     <input type="hidden" name="action" value="save_token">
                     <?php wp_nonce_field( 'save_token_nonce', 'save_token_nonce_field' ); ?>
-                    <?php submit_button( __( 'Gerar Token', 'lead-list-api' ), 'primary', 'submit_token' ); ?>
+                    <?php submit_button( __( 'Gerar Token', 'lead-list-api' ), 'page-title-action', 'submit_token' ); ?>
                 </li>
             </ul>
         </div>

@@ -48,45 +48,55 @@ function lead_list_api_add_admin_menu() {
         'lead-list-api-token', // Menu slug
         'lead_list_api_token_page_cb' // Callback function to render the page
     );
+
+      // Add submenu page for fields
+      add_submenu_page(
+        'lead-list-api', // Parent menu slug
+        __('Gerenciar Campos', 'lead-list-api'), // Page title
+        __('Gerenciar Campos', 'lead-list-api'), // Menu title
+        'manage_options', // Capability required to access the page
+        'lead-list-api-fields', // Menu slug
+        'lead_list_api_fields_page_cb' // Callback function to render the page
+    );
+
 }
 
 
 function lead_list_api_admin_styles() {
     // Enfileira o arquivo CSS no back-end do WordPress
-    wp_enqueue_style( 'lead-list-api-styles', plugins_url( 'css/styles.css', __FILE__ ), array(), '1.1.0', 'all' );
+    wp_enqueue_style( 'lead-list-api-styles', plugins_url( 'css/styles.css', __FILE__ ), array(), '1.0.0', 'all' );
 }
 add_action( 'admin_enqueue_scripts', 'lead_list_api_admin_styles' );
 
 
 /**
- * Callback function to render the main page
+ * render the main page
  */
 function lead_list_api_main_page_cb() {
-
-
   require_once LEADLISTAPI_DIR_PATH . '/includes/models/admin-model.php';
    Admin_Model::show_home_admin(); 
-
 }
 
 /**
- * Callback function to render the leads page
+ * render the leads page
  */
 function lead_list_api_leads_page_cb() {
-            // Include lead model 
-            require_once LEADLISTAPI_DIR_PATH . '/includes/models/admin-model.php';
-            Admin_Model::show_leads_admin(); 
+    require_once LEADLISTAPI_DIR_PATH . '/includes/models/admin-model.php';
+    Admin_Model::show_leads_admin(); 
 }
 
 /**
- * Callback function to render the token page
+ * render the token page
  */
 function lead_list_api_token_page_cb() {
-
-        // Include lead model 
         require_once LEADLISTAPI_DIR_PATH . '/includes/models/admin-model.php';
         Admin_Model::show_token(); 
 
+}
+
+function lead_list_api_fields_page_cb() {
+    require_once LEADLISTAPI_DIR_PATH . '/includes/models/admin-model.php';
+    Admin_Model::show_fields_admin(); 
 }
 
 // Initialize the admin menu
