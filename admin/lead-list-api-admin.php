@@ -64,7 +64,7 @@ function lead_list_api_add_admin_menu() {
 
 function lead_list_api_admin_styles() {
     // Enfileira o arquivo CSS no back-end do WordPress
-    wp_enqueue_style( 'lead-list-api-styles', plugins_url( 'css/styles.css', __FILE__ ), array(), '1.0.0', 'all' );
+    wp_enqueue_style( 'lead-list-api-styles', plugins_url( 'css/styles.css', __FILE__ ), array(), '1.1.0', 'all' );
 }
 add_action( 'admin_enqueue_scripts', 'lead_list_api_admin_styles' );
 

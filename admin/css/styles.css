@@ -171,6 +171,7 @@
 
 .lead-lest-api  .edit-field li form {
     margin-top: 5px;
+    height: 40px;
 }
 
 .lead-lest-api  .edit-field li form input[type="text"] {
