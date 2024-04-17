@@ -1,16 +1,15 @@
 <?php
 /**
  * Lead model for Lead List API
+ * Classe Admin_Model
+ * Responsável por gerenciar as operações relacionadas a area administrativa.
  */
 // If this file is called directly, abort.
 if (!defined('ABSPATH')) {
     exit;
 } 
 session_start();
-/**
-* Classe Admin_Model
-* Responsável por gerenciar as operações relacionadas a area administrativa.
-*/
+ 
 class Admin_Model {
 
  
@@ -260,53 +259,39 @@ class Admin_Model {
         // Exibe o JSON de exemplo
         echo $json_string;
     }
-
+ 
     public static function show_fields_admin() {
         global $wpdb;
         $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD;
-    
-         // formulário de adicionar campo foi submetido
-        if (isset($_POST['add_field'])) {
-            $new_field_name = sanitize_text_field($_POST['new_field_name']);
-            $result = self::add_field_to_lead_table($new_field_name);
-            if ($result === true) {
-                $message = __('Campo adicionado com sucesso.', 'lead-list-api');
-                $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-success'];
-            } else {
-                //   mensagem de erro personalizada
-                $_SESSION['admin_notice'] = ['message' => $result, 'class' => 'notice-error'];
-            }
-            wp_redirect(admin_url('admin.php?page=lead-list-api-fields'));
-            exit;
-        }
+  
 
         //  formulário de exclusão/edição de campo foi submetido
-        if (isset($_POST['action'])) {
-            $action = $_POST['action'];
-            $field_name = sanitize_text_field($_POST['field_name']);
-            $new_field_name = sanitize_text_field($_POST['new_field_name']);
+        //if (isset($_POST['action'])) {
+      //      $action = $_POST['action'];
+       //     $field_name = sanitize_text_field($_POST['field_name']);
+       //     $new_field_name = sanitize_text_field($_POST['new_field_name']);
     
-            if ($action === 'delete_field') {
-                if (self::delete_field_from_lead_table($field_name)) {
-                    $message = __('Campo excluído com sucesso.', 'lead-list-api');
-                    $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-success'];
-                } else {
-                    $message = __('O campo não pode ser excluído.', 'lead-list-api');
-                    $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-error'];
-                }
-            } elseif ($action === 'edit_field') {
-                if (self::edit_field_in_lead_table($field_name, $new_field_name)) {
-                    $message = __('Campo renomeado com sucesso.', 'lead-list-api');
-                    $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-success'];
-                } else {
-                    $message = __('O nome do campo não pode conter caracteres especiais, espaços ou acentos.', 'lead-list-api');
-                    $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-error'];
-                } 
-            }
+      //      if ($action === 'delete_field') {
+      //          if (self::delete_field_from_lead_table($field_name)) {
+      //              $message = __('Campo excluído com sucesso.', 'lead-list-api');
+       //             $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-success'];
+      //          } else {
+      //              $message = __('O campo não pode ser excluído.', 'lead-list-api');
+       //             $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-error'];
+       //         }
+        //    } elseif ($action === 'edit_field') {
+        //        if (self::edit_field_in_lead_table($field_name, $new_field_name)) {
+         //           $message = __('Campo renomeado com sucesso.', 'lead-list-api');
+         //           $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-success'];
+         //       } else {
+         //           $message = __('O nome do campo não pode conter caracteres especiais, espaços ou acentos.', 'lead-list-api');
+         //           $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-error'];
+         //       } 
+        //    }
     
-            wp_redirect(admin_url('admin.php?page=lead-list-api-fields'));
-            exit;
-        }
+           // wp_redirect(admin_url('admin.php?page=lead-list-api-fields'));
+           // exit;
+      //  }
     
         // Obtenha todos os campos da tabela
         $fields = $wpdb->get_results("DESCRIBE $table_name");
@@ -315,30 +300,84 @@ class Admin_Model {
           include LEADLISTAPI_DIR_PATH . '/includes/views/templates/parts/page-manage-fields.php';
     }
     
-    public static function add_field_to_lead_table($new_field_name) {
-        global $wpdb;
-        $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD;
-
-        // Verifica se o nome do campo é válido
-        if (!preg_match('/^[A-Za-z0-9_]+$/', $new_field_name)) {
-            $message = __('O campo não pode conter caracteres especiais, espaços ou acentos.', 'lead-list-api');
-            return  $message; 
-        }
-
-        // Verifica se o campo já existe na tabela
-        $existing_fields = $wpdb->get_results("DESCRIBE $table_name");
-        foreach ($existing_fields as $field) {
-            if ($field->Field == $new_field_name) {
-                $message = __('O campo já existe.', 'lead-list-api');
-                return  $message; 
+    public static function admin_field_to_lead_table() {
+        if (isset($_POST['submit_edit_field'])) {
+            // Verifica nonce antes de chamar a função de edição
+            if (isset($_POST['edit_field_nonce_field']) && wp_verify_nonce($_POST['edit_field_nonce_field'], 'edit_field_nonce')) {
+                $field_name = $_POST['field_name'];
+                $new_field_name = sanitize_text_field($_POST['new_field_name']);
+                if (self::edit_field_in_lead_table($field_name, $new_field_name)) {
+                     $message = __('Campo renomeado com sucesso.', 'lead-list-api');
+                     $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-success'];
+                 } else {
+                   $message = __('O nome do campo não pode conter caracteres especiais, espaços ou acentos.', 'lead-list-api');
+                   $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-error'];
+                 } 
             }
         }
-
-        // Adiciona o novo campo à tabela
-        $wpdb->query("ALTER TABLE $table_name ADD $new_field_name VARCHAR(255) NULL");
-
-        return true; // Campo adicionado com sucesso
+        if (isset($_POST['submit_delete_field'])) {
+            // Verifica nonce antes de chamar a função de exclusão
+            if (isset($_POST['delete_field_nonce_field']) && wp_verify_nonce($_POST['delete_field_nonce_field'], 'delete_field_nonce')) {
+                $field_name = $_POST['field_name'];
+                if (self::delete_field_from_lead_table($field_name)) {
+                     $message = __('Campo excluído com sucesso.', 'lead-list-api');
+                     $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-success'];
+                 } else {
+                    $message = __('O campo não pode ser excluído.', 'lead-list-api');
+                    $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-error'];
+                }
+            }
+        }
     }
+
+    public static function add_field_to_lead_table() {
+
+        if (isset($_POST['action']) && $_POST['action'] === 'add_field') {
+    
+            if (isset($_POST['add_field_nonce_field']) && wp_verify_nonce($_POST['add_field_nonce_field'], 'add_field_nonce')) {
+                global $wpdb;
+                $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD;
+     
+                 
+                if (isset($_POST['new_field_name'])) {
+                    
+                    $new_field_name = sanitize_text_field($_POST['new_field_name']);
+    
+                    // Verifica se o nome do campo é válido
+                    if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $new_field_name)) {
+                        $message = __('O campo não pode começar com números, conter caracteres especiais, espaços ou acentos.', 'lead-list-api');
+                    } elseif (strlen($new_field_name) > 70) {
+                        // Verifica se o nome do campo excede 70 caracteres
+                        $message = __('O nome do campo não pode ter mais de 70 caracteres.', 'lead-list-api');
+                    } else {
+                        // Verifica se o campo já existe na tabela
+                        $existing_fields = $wpdb->get_results("DESCRIBE $table_name");
+                        foreach ($existing_fields as $field) {
+                            if ($field->Field == $new_field_name) {
+                                $message = __('O campo já existe.', 'lead-list-api');
+                                break;
+                            }
+                        }
+                        // Se a mensagem ainda estiver vazia, adiciona o novo campo à tabela
+                        if (empty($message)) {
+                            $wpdb->query("ALTER TABLE $table_name ADD $new_field_name VARCHAR(255) NULL");
+                            $message = __('Campo adicionado com sucesso.', 'lead-list-api');
+                        }
+                    }
+            
+                    // Define a mensagem de aviso para ser exibida
+                    $_SESSION['admin_notice'] = ['message' => $message, 'class' => 'notice-success'];
+                   
+                }
+            } 
+            // Redireciona de volta para a página de configurações após add o campo
+            wp_redirect(admin_url("admin.php?page=lead-list-api-fields"));
+    
+            exit;
+        }
+    }
+    
+   
 
     public static function edit_field_in_lead_table($field_name, $new_field_name) {
         global $wpdb;
@@ -367,14 +406,13 @@ class Admin_Model {
     }
     
 
-
     public static function save_token() {
 
         if (isset($_POST['action']) && $_POST['action'] === 'save_token') {
 
             if (isset($_POST['save_token_nonce_field']) && wp_verify_nonce($_POST['save_token_nonce_field'], 'save_token_nonce')) {
                 global $wpdb;
-                $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_TOKEN;
+                $table_name = $wpdb->prefix . LEADLISTAPI_DB_TABLE_LEAD;
      
                  
                 if (isset($_POST['token_name'])) {
@@ -504,7 +542,7 @@ class Admin_Model {
             exit;
         }
     }
-} 
+    } 
 
 
 /**
@@ -514,10 +552,18 @@ add_action('admin_notices', function() {
     if (isset($_SESSION['admin_notice'])) { $notice = $_SESSION['admin_notice'];
          echo "<div class='notice {$notice['class']} is-dismissible'>
                <p>{$notice['message']}</p></div>";
-         // Limpa a mensagem após exibição
-         unset($_SESSION['admin_notice']);
+            // Limpa a mensagem após exibição
+            unset($_SESSION['admin_notice']);
     }
 });
+
+
+
+
+add_action('admin_init', array('Admin_Model', 'admin_field_to_lead_table'));
+
+ // Adiciona a ação que liga a função 'add_field_to_lead_table' ao gancho 'admin_post_add_field'
+add_action('admin_init', array('Admin_Model', 'add_field_to_lead_table'));
 
 // Adiciona a ação que liga a função 'save_token' ao gancho 'admin_post_save_token'
 add_action('admin_init', array('Admin_Model', 'save_token'));

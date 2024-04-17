@@ -97,6 +97,8 @@ function lead_list_api_token_page_cb() {
 function lead_list_api_fields_page_cb() {
     require_once LEADLISTAPI_DIR_PATH . '/includes/models/admin-model.php';
     Admin_Model::show_fields_admin(); 
+    Admin_Model::add_field_to_lead_table();
+
 }
 
 // Initialize the admin menu
