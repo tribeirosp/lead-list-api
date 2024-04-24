@@ -519,8 +519,6 @@ add_action('admin_notices', function() {
 });
 
 
-
-
 add_action('admin_init', array('Admin_Model', 'admin_field_to_lead_table'));
 
  // Adiciona a ação que liga a função 'add_field_to_lead_table' ao gancho 'admin_post_add_field'
